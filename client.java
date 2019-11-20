@@ -28,9 +28,11 @@ public class client {
 			path = Paths.get(input.next());
 		}
 		FileOutputStream fr = new FileOutputStream(path.toString());
-		byte[] array = is.readAllBytes();
+		byte[] array = new byte[12800];
+		is.read(array);
+		//is.readAllBytes();
 		fr.write(array);
-		input.close();
+		//input.close();
 	}
 	
 	public static void client_send(Socket sr, OutputStream os, InputStream is) throws Exception{
