@@ -27,15 +27,39 @@ public class client {
 			System.out.print("Path does not exist, please re-enter directory: ");
 			path = Paths.get(input.next());
 		}
-		input.close();
 		FileOutputStream fr = new FileOutputStream(path.toString());
 		byte[] array = is.readAllBytes();
 		fr.write(array);
+		input.close();
 	}
 	
-	public static void client_send(Socket sr) throws Exception{
-		
-		
+	public static void client_send(Socket sr, OutputStream os, InputStream is) throws Exception{
+		Scanner input = new Scanner(System.in);
+		// Ask user to input the file to be sent
+		System.out.print("Please enter the directory of the target file in your desktop: ");
+		Path path = Paths.get(input.next());
+		while(Files.notExists(path)){
+			System.out.print("Invalid path, please re-enter path: ");
+			path = Paths.get(input.next());
+		}
+		FileInputStream fr = new FileInputStream(path.toString());
+		byte file_content[] = new byte[12800];
+		fr.read(file_content);
+		// Ask user where in the server does he want to save the file
+		System.out.print("Please enter the directory you want to save your file at: ");
+		String target_path = input.next();
+		os.write(target_path.getBytes());
+		// check path validity
+		byte[] status_byte = new byte[2];
+		is.read(status_byte);
+		String status = new String(status_byte);
+		while (status.charAt(0) != 'y'){
+			System.out.print("Invalid path, please re-enter path: ");
+			target_path = input.next();
+		}
+		// send the data
+		os.write(file_content);
+		input.close();
 	}
 	public static void main(String[] args) throws Exception{
 		Scanner input = new Scanner(System.in);
@@ -48,13 +72,17 @@ public class client {
 			System.out.println("Sorry, server is currently unavailable");
 			System.exit(0);	
 		}
-		System.out.print("Do you want to send file to or retrieve file from the server (enter 's' to send and 'r' to retrieve): ");
-		String user_opt = input.next();
 		OutputStream os = sr.getOutputStream();
 		InputStream is = sr.getInputStream();
+		System.out.print("Do you want to send file to or retrieve file from the server (enter 's' to send and 'r' to retrieve): ");
+		String user_opt = input.next();
+		while ((user_opt.charAt(0) != 's') && (user_opt.charAt(0) != 'r')){
+			System.out.print("Invalid input, please re-enter: ");
+			user_opt = input.next();
+		}
 		os.write(user_opt.getBytes());
-		if (user_opt == "s"){
-			
+		if (user_opt.charAt(0) == 's'){
+			client_send(sr, os, is);
 		}
 		else{
 			client_receive(sr, os, is);
